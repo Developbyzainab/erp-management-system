@@ -1,0 +1,155 @@
+'use client'
+
+import Link from 'next/link';
+import { useState, useEffect } from 'react';
+import { Building2, Users, DollarSign, Eye, ArrowRight, CheckCircle, TrendingUp, Calendar } from 'lucide-react';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
+
+const sampleChartData = [
+  { month: 'Jan', count: 4 },
+  { month: 'Feb', count: 7 },
+  { month: 'Mar', count: 12 },
+  { month: 'Apr', count: 9 },
+  { month: 'May', count: 15 },
+  { month: 'Jun', count: 22 },
+];
+
+const COLORS = ['#EF4444', '#DC2626', '#B91C1C', '#991B1B', '#7F1D1D', '#450A0A'];
+
+export default function DashboardPage() {
+  const [chartData, setChartData] = useState(sampleChartData);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted) {
+    return <div className="p-8 text-center">Loading...</div>;
+  }
+
+  const totalRegistrations = chartData.reduce((sum, d) => sum + d.count, 0);
+  const growthRate = Math.round(((chartData[chartData.length - 1]?.count || 0) - (chartData[0]?.count || 0)) / (chartData[0]?.count || 1) * 100);
+
+  return (
+    <div className="space-y-6">
+      {/* Welcome Banner */}
+      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-red-600 via-red-700 to-red-800 p-6 text-white shadow-xl">
+        <div className="absolute top-0 right-0 w-48 h-48 bg-white/10 rounded-full blur-3xl" />
+        <div className="absolute bottom-0 left-0 w-32 h-32 bg-white/5 rounded-full blur-2xl" />
+        <div className="relative">
+          <h1 className="text-2xl font-bold tracking-tight">Welcome back! 👋</h1>
+          <p className="text-red-100 text-sm mt-1">Here's what's happening with your business today</p>
+          <div className="flex gap-3 mt-4">
+            <button className="text-sm bg-white/20 backdrop-blur-sm px-4 py-1.5 rounded-lg hover:bg-white/30 transition-all flex items-center gap-2 cursor-pointer">
+              <TrendingUp size={14} /> View Reports
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Stats Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <StatCard title="Total Tenants" value="0" icon={Building2} trend="+12%" trendUp={true} color="red" />
+        <StatCard title="Active Tenants" value="0" icon={Users} trend="+5%" trendUp={true} color="red" />
+        <StatCard title="Monthly Revenue" value="0" icon={DollarSign} trend="+18%" trendUp={true} color="red" prefix="$" />
+        <StatCard title="Completion Rate" value="0" icon={CheckCircle} trend="+3%" trendUp={true} color="red" suffix="%" />
+      </div>
+
+      {/* Chart Section */}
+      <div className="bg-white rounded-xl border border-gray-200 shadow-lg overflow-hidden">
+        <div className="px-5 py-4 border-b border-gray-200 flex justify-between items-center flex-wrap gap-3">
+          <div>
+            <h3 className="font-semibold text-gray-800">Tenant Growth Overview</h3>
+            <p className="text-xs text-gray-500 mt-0.5">Monthly tenant registrations (Last 6 months)</p>
+          </div>
+          <div className="flex items-center gap-2">
+            <select className="text-xs border border-gray-200 rounded-lg px-2 py-1.5 bg-white text-gray-600 cursor-pointer focus:outline-none focus:ring-2 focus:ring-red-400">
+              <option>Last 6 months</option>
+              <option>Last year</option>
+            </select>
+            <button className="p-1.5 text-gray-400 hover:text-red-500 rounded-lg hover:bg-red-50 transition-all cursor-pointer">
+              <Calendar size={16} />
+            </button>
+          </div>
+        </div>
+        
+        <div className="p-5">
+          <ResponsiveContainer width="100%" height={300}>
+            <BarChart data={chartData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
+              <XAxis dataKey="month" stroke="#6B7280" tick={{ fill: '#6B7280', fontSize: 12 }} />
+              <YAxis stroke="#6B7280" tick={{ fill: '#6B7280', fontSize: 12 }} allowDecimals={false} />
+              <Tooltip 
+                contentStyle={{ backgroundColor: '#FFFFFF', border: '1px solid #E5E7EB', borderRadius: '8px', padding: '8px 12px', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)' }}
+                cursor={{ fill: '#EF4444', fillOpacity: 0.1 }}
+                formatter={(value: any) => [`${value} tenants`, 'Registrations']}
+              />
+              <Bar dataKey="count" radius={[8, 8, 0, 0]} animationDuration={1500}>
+                {chartData.map((entry, index) => (
+                  <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                ))}
+              </Bar>
+            </BarChart>
+          </ResponsiveContainer>
+          
+          <div className="grid grid-cols-3 gap-4 mt-6 pt-4 border-t border-gray-100">
+            <div className="text-center">
+              <p className="text-2xl font-bold text-gray-800">{totalRegistrations}</p>
+              <p className="text-xs text-gray-500">Total Registrations</p>
+            </div>
+            <div className="text-center">
+              <p className="text-2xl font-bold text-red-600">+{growthRate}%</p>
+              <p className="text-xs text-gray-500">Growth Rate</p>
+            </div>
+            <div className="text-center">
+              <p className="text-2xl font-bold text-red-600">{chartData[chartData.length - 1]?.count || 0}</p>
+              <p className="text-xs text-gray-500">This Month</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Recent Tenants */}
+      <div className="bg-white rounded-xl border border-gray-200 shadow-lg overflow-hidden">
+        <div className="px-5 py-4 border-b border-gray-200 flex justify-between items-center">
+          <div>
+            <h3 className="font-semibold text-gray-800">Recent Tenants</h3>
+            <p className="text-xs text-gray-500 mt-0.5">Latest organizations that joined</p>
+          </div>
+          <Link href="/tenants" className="text-red-600 text-sm font-medium flex items-center gap-1 hover:gap-2 transition-all cursor-pointer">
+            View all <ArrowRight size={14} />
+          </Link>
+        </div>
+        
+        <div className="p-8 text-center">
+          <Building2 className="w-10 h-10 text-gray-300 mx-auto mb-2" />
+          <p className="text-gray-500 text-sm">No tenants found</p>
+          <Link href="/tenants/create" className="text-red-600 text-sm mt-2 inline-block hover:underline cursor-pointer">
+            Create Tenant →
+          </Link>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function StatCard({ title, value, icon: Icon, trend, trendUp, color, prefix = '', suffix = '' }: any) {
+  const colors: Record<string, string> = { red: 'from-red-500 to-red-600' };
+  return (
+    <div className="bg-white rounded-xl border border-gray-200 p-4 shadow-sm hover:shadow-md transition-all duration-300 group cursor-pointer">
+      <div className="flex justify-between items-start">
+        <div>
+          <p className="text-xs text-gray-500">{title}</p>
+          <p className="text-2xl font-bold text-gray-800 mt-1">{prefix}{value}{suffix}</p>
+          <span className={`inline-block text-xs px-1.5 py-0.5 rounded-full mt-1.5 ${trendUp ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+            {trend}
+          </span>
+        </div>
+        <div className={`p-2.5 rounded-xl bg-gradient-to-br ${colors[color]} shadow-md group-hover:scale-110 transition-transform duration-300`}>
+          <Icon size={18} className="text-white" />
+        </div>
+      </div>
+    </div>
+  );
+}

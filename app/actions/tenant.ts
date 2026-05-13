@@ -1,8 +1,12 @@
+
+// Tenant.ts
+
 'use server'
 
 import pool from '@/lib/db';
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
+import TenantForm from '../tenants/components/TenantForm';
 
 export async function deleteTenant(id: string) {
   try {
@@ -92,3 +96,6 @@ export async function updateTenant(id: string, formData: FormData) {
   revalidatePath('/tenants');
   redirect('/tenants');
 }
+
+
+

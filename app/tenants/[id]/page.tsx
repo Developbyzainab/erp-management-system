@@ -1,21 +1,26 @@
-import pool from '@/lib/db';
+'use client';
+
+import { useState, useEffect } from 'react';
 import TenantForm from '../components/TenantForm';
-import { notFound } from 'next/navigation';
 
-export default async function ViewTenantPage({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = await params;
-  let tenant = null;
+export default function ViewTenantPage({ params }: { params: Promise<{ id: string }> }) {
+  const [tenantId, setTenantId] = useState<string | null>(null);
 
-  try {
-    const result = await pool.query('SELECT * FROM erp_tenantes WHERE id = $1', [id]);
-    if (result.rows.length === 0) {
-      return notFound();
-    }
-    tenant = result.rows[0];
-  } catch (error) {
-    console.error('Error fetching tenant for view:', error);
-    return notFound();
+  useEffect(() => {
+    const getId = async () => {
+      const { id } = await params;
+      setTenantId(id);
+    };
+    getId();
+  }, [params]);
+
+  if (!tenantId) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 flex items-center justify-center">
+        <div className="w-8 h-8 border-4 border-indigo-100 border-t-indigo-600 rounded-full animate-spin"></div>
+      </div>
+    );
   }
 
-  return <TenantForm initialData={tenant} title="View Tenant" isView={true} />;
+  return <TenantForm mode="view" tenantId={tenantId} />;
 }
